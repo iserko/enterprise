@@ -1,0 +1,53 @@
+nginx:
+  image: nginx
+  working_dir: /tmp
+  volumes:
+    - nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  links:
+    - web
+  ports:
+    - 8000:80
+
+web:
+  build: .
+  command: /opt/codecov/codecov web
+  volumes:
+    - ./codecov.yml:/opt/codecov/codecov.yml
+    - ./codecov:/opt/codecov/codecov
+  links:
+    - ccdatabase
+    - ccredis
+  expose:
+    - "5000"
+  environment:
+    - DATABASE_URL=postgres://postgres:postgres@ccdatabase:5432/postgres
+    - REDIS_URL=redis://ccredis:6379
+    - ENTERPRISE_LICENSE
+    - COOKIE_SECRET
+    - ENTERPRISE_COMPANY
+
+worker:
+  build: .
+  command: /opt/codecov/codecov worker
+  volumes:
+    - ./codecov.yml:/opt/codecov/codecov.yml
+    - ./codecov:/opt/codecov/codecov
+  links:
+    - ccdatabase
+    - ccredis
+  environment:
+    - DATABASE_URL=postgres://postgres:postgres@ccdatabase:5432/postgres
+    - REDIS_URL=redis://ccredis:6379
+    - ENTERPRISE_LICENSE
+    - COOKIE_SECRET
+    - ENTERPRISE_COMPANY
+
+ccdatabase:
+  image: postgres
+  expose:
+    - "5432"
+
+ccredis:
+  image: redis
+  expose:
+    - "6379"
