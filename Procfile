@@ -1,1 +1,2 @@
-web: bin/run web
+web: ./codecov web --port $PORT
+worker: ./codecov worker
